@@ -26,11 +26,12 @@ exports.getAllBooks = async (req, res) => {
     db.query('SELECT * FROM libros', (err, results) => {
       if (err) throw err;
 
+      // ✅ Si no hay libros en la tabla
       if (results.length === 0) {
         return res.status(200).json({ message: 'No hay libros disponibles' });
       }
 
-      res.json(results);
+      res.json(results); // ✅ Lista de libros
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -42,13 +43,18 @@ exports.getBookById = async (req, res) => {
   try {
     db.query('SELECT * FROM libros WHERE id = ?', [req.params.id], (err, results) => {
       if (err) throw err;
-      if (results.length === 0) return res.status(404).json({ message: 'Libro no encontrado' });
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: 'Libro no encontrado' });
+      }
+
       res.json(results[0]);
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 exports.createBook = async (req, res) => {
   try {
