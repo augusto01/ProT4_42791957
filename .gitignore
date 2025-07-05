@@ -1,0 +1,33 @@
+# node_modules: dependencias instaladas con npm
+node_modules/
+
+# archivos de logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# entorno local
+.env
+
+# producidos por test runners
+coverage/
+
+# archivos temporales
+tmp/
+temp/
+*.tmp
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+
+# archivos de producción (si usás algún builder)
+dist/
+build/
