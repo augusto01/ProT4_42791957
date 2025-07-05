@@ -1,5 +1,7 @@
 const db = require('../config/db');
 
+// Función para validar los campos del libro
+// Esta función valida los campos de un libro y devuelve un mensaje de error si hay algún problema
 const validarLibro = ({ nombre, autor, categoria, año_publicacion, isbn }) => {
   if (!nombre || !autor || !categoria || !año_publicacion || !isbn) {
     return 'Todos los campos son obligatorios.';
@@ -21,6 +23,8 @@ const validarLibro = ({ nombre, autor, categoria, año_publicacion, isbn }) => {
   return null; // No hay errores
 };
 
+
+//metodo para obtener todos los libros
 exports.getAllBooks = async (req, res) => {
   try {
     db.query('SELECT * FROM libros', (err, results) => {
@@ -48,6 +52,8 @@ exports.getAllBooks = async (req, res) => {
   }
 };
 
+
+//metodo para obtener libro por id
 exports.getBookById = async (req, res) => {
   try {
     db.query('SELECT * FROM libros WHERE id = ?', [req.params.id], (err, results) => {
@@ -74,6 +80,8 @@ exports.getBookById = async (req, res) => {
   }
 };
 
+
+//metodo para crear libro 
 exports.createBook = async (req, res) => {
   try {
     const { nombre, autor, categoria, año_publicacion, isbn } = req.body;
@@ -104,30 +112,68 @@ exports.createBook = async (req, res) => {
   }
 };
 
+//metodo para actualizar libro
 exports.updateBook = async (req, res) => {
   try {
-    const { nombre, autor, categoria, año_publicacion, isbn } = req.body;
+    const campos = req.body;
+    const id = req.params.id;
 
-    const error = validarLibro({ nombre, autor, categoria, año_publicacion, isbn });
-    if (error) return res.status(400).json({
-      status: 'error',
-      message: error
-    });
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'ID inválido'
+      });
+    }
+
+    // Validar que al menos se haya enviado algún campo
+    if (Object.keys(campos).length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Debes enviar al menos un campo para actualizar'
+      });
+    }
+
+    // Validaciones mínimas por campo
+    if (campos.nombre && campos.nombre.length > 30) {
+      return res.status(400).json({ status: 'error', message: 'El nombre no debe superar los 30 caracteres' });
+    }
+    if (campos.autor && campos.autor.length > 30) {
+      return res.status(400).json({ status: 'error', message: 'El autor no debe superar los 30 caracteres' });
+    }
+    if (campos.categoria && campos.categoria.length > 30) {
+      return res.status(400).json({ status: 'error', message: 'La categoría no debe superar los 30 caracteres' });
+    }
+    if (campos.isbn && campos.isbn.length !== 13) {
+      return res.status(400).json({ status: 'error', message: 'El ISBN debe tener 13 caracteres' });
+    }
+    if (campos.año_publicacion && isNaN(Date.parse(campos.año_publicacion))) {
+      return res.status(400).json({ status: 'error', message: 'La fecha de publicación no es válida' });
+    }
+
+    // Armar dinámicamente SET de SQL
+    const camposSQL = Object.keys(campos)
+      .map(campo => `${campo} = ?`)
+      .join(', ');
+
+    const valores = Object.values(campos);
 
     db.query(
-      'UPDATE libros SET nombre = ?, autor = ?, categoria = ?, año_publicacion = ?, isbn = ? WHERE id = ?',
-      [nombre, autor, categoria, año_publicacion, isbn, req.params.id],
+      `UPDATE libros SET ${camposSQL} WHERE id = ?`,
+      [...valores, id],
       (err, result) => {
         if (err) throw err;
-        if (result.affectedRows === 0) return res.status(404).json({
-          status: 'error',
-          message: 'Libro no encontrado'
-        });
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            status: 'error',
+            message: 'Libro no encontrado'
+          });
+        }
 
         res.status(200).json({
           status: 'success',
-          message: 'Libro actualizado exitosamente',
-          data: { id: req.params.id, nombre, autor, categoria, año_publicacion, isbn }
+          message: 'Libro actualizado correctamente',
+          data: { id, ...campos }
         });
       }
     );
@@ -139,6 +185,7 @@ exports.updateBook = async (req, res) => {
   }
 };
 
+
 exports.deleteBook = async (req, res) => {
   try {
     db.query('DELETE FROM libros WHERE id = ?', [req.params.id], (err, result) => {
@@ -147,7 +194,11 @@ exports.deleteBook = async (req, res) => {
         status: 'error',
         message: 'Libro no encontrado'
       });
-      res.status(204).send();
+      res.status(204).json({
+          status: 'success',
+          message: 'Libro eliminado correctamente !',
+          
+        });
     });
   } catch (error) {
     res.status(500).json({
