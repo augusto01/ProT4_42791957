@@ -1,6 +1,6 @@
 # ProT4_42791957 - Almiron Pedro Augusto 
-# Tarea Integradora TRAMO 4 - MODULO 2
-# 📚 API REST - Gestión de Libros
+ Tarea Integradora TRAMO 4 - MODULO 2
+ 📚 API REST - Gestión de Libros
 
 Este proyecto es una API REST construida con Node.js, Express y MySQL. Permite realizar operaciones CRUD (crear, leer, actualizar y eliminar) sobre libros registrados en una base de datos.
 
